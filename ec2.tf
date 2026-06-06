@@ -14,12 +14,6 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
-# 1. Added just this variable definition at the top so GitHub can pass the key
-variable "ssh_private_key" {
-  type      = string
-  sensitive = true
-}
-
 resource "aws_instance" "php" {
   ami             = data.aws_ami.ubuntu.id
   instance_type   = "t3.micro"
@@ -28,18 +22,5 @@ resource "aws_instance" "php" {
   user_data       = file("${path.module}/scripts/lemp.sh")
   tags = {
     Name = "PHP Info page"
-  }
-
-  # 2. Replaced only the file() function with the variable here
-  provisioner "file" {
-    source      = "${path.module}/scripts"
-    destination = "/tmp"
-
-    connection {
-      type        = "ssh"
-      user        = "ubuntu"
-      private_key = var.ssh_private_key
-      host        = self.public_ip
-    }
   }
 }
