@@ -1,0 +1,58 @@
+name: "Terraform Infrastructure Deployment"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: "Terraform Automation"
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Fetch your code files from the repository into the runner environment
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Configure AWS Administrative Access Credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1 # Change this if your infrastructure is targeted elsewhere
+
+      # 3. Download and install the specific version of Terraform CLI
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.0
+
+      # 4. Check for syntax formatting issues across your configuration files
+      - name: Terraform Format Check
+        run: terraform fmt -check
+
+      # 5. Connect to your remote AWS S3 backend and download provider binaries
+      - name: Terraform Init
+        run: terraform init
+
+      # 6. Validate the structural integrity of your code scripts
+      - name: Terraform Validate
+        run: terraform validate
+
+      # 7. Generate a plan blueprint showcasing exactly what resources will build
+      - name: Terraform Plan
+        run: terraform plan -input=false
+
+      # 8. Build the live security groups, network rules, and EC2 instance
+      # (Runs automatically on push actions to the main branch)
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve -input=false
