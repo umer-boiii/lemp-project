@@ -15,15 +15,15 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_instance" "php" {
-  ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t3.micro"
-  
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t3.micro"
+
   # Fixed: Swapped to vpc_security_group_ids using the resource ID
   vpc_security_group_ids = [aws_security_group.TF_SG.id]
   key_name               = "Haq"
-  
+
   # Passes your setup instructions to AWS to run immediately at launch
-  user_data              = file("${path.module}/scripts/lemp.sh")
+  user_data = file("${path.module}/scripts/lemp.sh")
 
   tags = {
     Name = "PHP Info page"
@@ -36,10 +36,10 @@ resource "aws_instance" "php" {
     destination = "/tmp"
 
     connection {
-      type        = "ssh"
-      user        = "ubuntu"
+      type = "ssh"
+      user = "ubuntu"
       # Points to your private key file to authenticate the file copy
-      private_key = file("${path.module}/id_rsa") 
+      private_key = file("${path.module}/id_rsa")
       host        = self.public_ip
     }
   }
