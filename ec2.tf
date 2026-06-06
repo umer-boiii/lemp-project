@@ -15,11 +15,11 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_instance" "php" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t3.micro" 
+  ami             = data.aws_ami.ubuntu.id
+  instance_type   = "t3.micro"
   security_groups = [aws_security_group.TF_SG.name]
-  key_name = "Haq"
-  user_data = file("${path.module}/scripts/lemp.sh")
+  key_name        = "Haq"
+  user_data       = file("${path.module}/scripts/lemp.sh")
   tags = {
     Name = "PHP Info page"
   }
