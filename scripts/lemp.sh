@@ -16,7 +16,7 @@ sudo systemctl start nginx
 sudo systemctl enable mysql
 sudo systemctl start mysql
 
-# Create index directory and deploy sample application payload (Step 6)
+# Create index directory and deploy sample application payload
 sudo mkdir -p /var/www/html
 sudo cat <<EOF | sudo tee /var/www/html/index.php
 <?php
@@ -25,10 +25,10 @@ phpinfo();
 EOF
 
 # Dynamically locate the active PHP FastCGI socket file path on the machine
-# (Handles varying OS default versions like php8.1-fpm, php8.3-fpm, or php8.5-fpm)
 PHP_SOCKET=$(ls /run/php/php*-fpm.sock | head -n 1)
 
 # Overwrite default server block configuration to properly route PHP traffic
+# FIX: Added your custom lemp_access.log and lemp_error.log paths directly here!
 sudo cat <<EOF | sudo tee /etc/nginx/sites-available/default
 server {
     listen 80 default_server;
@@ -38,6 +38,9 @@ server {
     index index.php index.html index.htm;
 
     server_name _;
+
+    access_log /var/log/nginx/lemp_access.log;
+    error_log /var/log/nginx/lemp_error.log warn;
 
     location / {
         try_files \$uri \$uri/ =404;
@@ -61,13 +64,17 @@ sudo nginx -t
 
 # Cycle Nginx to instantly apply configuration updates
 sudo systemctl restart nginx
+
 # =========================================================================
 # ⏰ STEP 8 SETUP: AUTOMATE LOG REPORTING CRON JOB
 # =========================================================================
 
 # Move the log reporting script into its permanent operations location
 sudo mkdir -p /opt/scripts
-sudo cp /home/ubuntu/project/scripts/nginx-log-report.sh /opt/scripts/nginx-log-report.sh
+
+# FIX: Changed source path to /tmp/scripts/ because that's where the 
+# Terraform file provisioner uploads your files!
+sudo cp /tmp/scripts/nginx-log-report.sh /opt/scripts/nginx-log-report.sh
 sudo chmod +x /opt/scripts/nginx-log-report.sh
 
 # Inject the execution logic pattern safely into the server's root crontab engine
